@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  username     String?      @unique
+  passwordHash String       @map("password_hash")
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  gameResults  GameResult[]
+
+  @@map("users")
+}
+
+model GameResult {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @map("user_id")
+  aiDepth             Int      @map("ai_depth")
+  result              String   // 'win', 'loss', 'draw'
+  movesCount          Int?     @map("moves_count")
+  gameDurationSeconds Int?     @map("game_duration_seconds")
+  playedAt            DateTime @default(now()) @map("played_at")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, aiDepth])
+  @@index([userId])
+  @@map("game_results")
+}
