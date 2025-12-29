@@ -15,6 +15,7 @@ export const StatsDisplay = forwardRef<StatsDisplayHandle>((_, ref) => {
         try {
             setIsLoading(true);
             const data = await api.getStats();
+            console.log("stats: ", data)
             setStats(data);
             setError(null);
         } catch (err) {
@@ -76,6 +77,12 @@ export const StatsDisplay = forwardRef<StatsDisplayHandle>((_, ref) => {
         return "Hard";
     };
 
+    const getDifficultyClass = (depth: number): string => {
+        if (depth <= 2) return 'easy';
+        if (depth <= 4) return 'medium';
+        return 'hard';
+    };
+
     // ------------------------------ render the entire page ------------------------------ #
     return (
         <div className="stats-container">
@@ -113,7 +120,7 @@ export const StatsDisplay = forwardRef<StatsDisplayHandle>((_, ref) => {
                 {stats.overall.highestLevelBeaten > 0 && (
                     <div className="highest-depth">
                         <span className="highest-depth-label">Highest Level Beaten: </span>
-                        <span className={`difficulty-badge ${getDifficultyLevel(stats.overall.highestLevelBeaten).toLowerCase()}`}>
+                        <span className={`difficulty-badge ${getDifficultyClass(stats.overall.highestLevelBeaten)}`}>
                             {getDifficultyLevel(stats.overall.highestLevelBeaten)} (Level {stats.overall.highestLevelBeaten})
                         </span>
                     </div>
@@ -128,7 +135,7 @@ export const StatsDisplay = forwardRef<StatsDisplayHandle>((_, ref) => {
                         {stats.byLevel.map((depthStat) => (
                             <div key={depthStat.depth} className="depth-stat-item">
                                 <div className="depth-stat-header">
-                                    <span className={`difficult-badge ${getDifficultyLevel(depthStat.depth).toLowerCase()}`}>
+                                    <span className={`difficult-badge ${getDifficultyClass(depthStat.depth)}`}>
                                         {getDifficultyLevel(depthStat.depth)} (Level {depthStat.depth})
                                     </span>
                                     <span className="depth-win-rate">{depthStat.winRate}%</span>
