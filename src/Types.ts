@@ -45,3 +45,51 @@ export type RegisterData = {
     firstName: string;
     lastName: string;
 };
+
+// User login data
+export type LoginData = {
+    emailOrUsername: string;
+    password: string;
+};
+
+//  Auth Response type
+export type AuthResponse = {
+    message: string,
+    user: User,
+    token: string
+};
+
+// Game Data
+export type GameData = {
+    aiDepth: number;
+    result: 'win' | 'loss' | 'draw';
+    moveCount?: number;
+    gameDurationSeconds?: number;
+};
+
+export type StatsResponse = {
+    overall: {
+        totalGames: number;
+        wins: number;
+        losses: number;
+        draws: number;
+        winRate: number;
+        highestLevelBeaten: number;
+    };
+    byLevel: Array<{
+        depth: number;
+        wins: number;
+        losses: number;
+        draws: number;
+        total: number;
+        winRate: number;
+    }>;
+    recentGames: Array<{
+        id: number;
+        aiDepth: number;
+        result: string;
+        moveCount: number | null;
+        gameDurationSeconds: number | null;
+        playedAt: string;
+    }>;
+};

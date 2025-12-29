@@ -1,25 +1,4 @@
-import type { RegisterData } from "../Types";
-
-// API interfaces
-interface User {
-    id: number,
-    email: string,
-    username: string | null,
-    firstName: string,
-    lastName: string,
-    password: string
-}
-
-interface LoginData {
-    emailOrUsername: string,
-    password: string
-}
-
-interface AuthResponse {
-    message: string,
-    user: User,
-    token: string
-}
+import type { AuthResponse, GameData, LoginData, RegisterData, StatsResponse } from "../Types";
 
 class ApiService {
     private getAuthHeader(): HeadersInit {
@@ -28,7 +7,6 @@ class ApiService {
     }
 
     // ------------------------------------ Users Endpoints -------------------------------------- //
-
     //  Register user
     async register(data: RegisterData): Promise<AuthResponse> {
         const response = await fetch('/api/auth/register', {
@@ -90,10 +68,42 @@ class ApiService {
         }
 
         return result;
-    };
+    }
 
     // ------------------------------------ Games Endpoints -------------------------------------- //
+    async recordGame(data: GameData): Promise<void> {
+        const response = await fetch('/api/games/record', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...this.getAuthHeader()
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || 'Failed to record game');
+        }
+    }
+
     // ------------------------------------ Stats Endpoints -------------------------------------- //
+
+    // get stats
+    async getStats(): Promise<StatsResponse> {
+        const response = await fetch('/api/stats', {
+            method: 'GET',
+            headers: this.getAuthHeader()
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to Load stats');
+        }
+
+        return result;
+    }
 }
 
 export const api = new ApiService();

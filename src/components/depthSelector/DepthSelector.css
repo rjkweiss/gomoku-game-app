@@ -1,0 +1,116 @@
+.depth-selector-container {
+    align-items: center;
+    background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+    border-radius: 12px;
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 20px;
+}
+
+.depth-selector-container.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.depth-label {
+    color: #7f8c8d;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.depth-controls {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+}
+
+.depth-btn {
+    align-items: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    font-size: 22px;
+    font-weight: bold;
+    height: 40px;
+    justify-content: center;
+    width: 40px;
+    transition: all 0.2s ease;
+}
+
+.depth-btn.decrease {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
+    color: #fff;
+}
+
+.depth-btn.decrease:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff6b5b 0%, #e74c3c 100%);
+    transform: scale(1.1);
+}
+
+.depth-btn.increase {
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+    box-shadow: 0 3px 10px rgba(39, 174, 96, 0.4);
+    color: #fff;
+}
+
+.depth-btn.increase:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    transform: scale(1.1);
+}
+
+.depth-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+    transform: none;
+}
+
+.depth-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.depth-display {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    min-width: 70px;
+}
+
+.depth-value {
+    color: #ecf0f1;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.difficulty-label {
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    padding: 2px 8px;
+    text-transform: uppercase;
+}
+
+.difficulty-label.easy {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.difficulty-label.medium {
+    background-color: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+}
+
+.difficulty-label.hard {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+}
