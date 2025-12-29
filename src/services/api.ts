@@ -32,7 +32,7 @@ class ApiService {
     //  Register user
     async register(data: RegisterData): Promise<AuthResponse> {
         const response = await fetch('/api/auth/register', {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },

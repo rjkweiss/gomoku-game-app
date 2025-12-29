@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../lib/prisma.js";
 import bcrypt from 'bcrypt';
-import { createToken } from "../../lib/auth";
+import { createToken } from "../../lib/auth.js";
 
 
 const handler = async (req: VercelRequest, res: VercelResponse) => {

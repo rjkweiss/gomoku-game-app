@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import bcrypt from 'bcrypt';
-import { prisma } from "../../lib/prisma";
-import { createToken } from "../../lib/auth";
+import { prisma } from "../../lib/prisma.js";
+import { createToken } from "../../lib/auth.js";
 
 
 const SALT_ROUND = 10;
