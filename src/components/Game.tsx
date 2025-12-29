@@ -1,41 +1,43 @@
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
+import { BoardView } from "./board/Board";
+import { useGameState } from "../hooks/useGameState";
+
+
+// Game Configuration
+const GAME_CONFIG = {
+    boardSize: 15,
+    cellSize: 50,
+    margin: 50,
+    aiDepth: 3,
+    aiDelayMs: 2000
+};
 
 
 export const Game = () => {
 
-    const [users, setUsers] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const data = await api.getAllUsers();
-                console.log("data: ", data)
-                setUsers(data.allUsers);
-                setIsLoading(false);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load');
-                setIsLoading(false);
-            }
-        };
-
-        fetchUsers();
-    }, []);
-
-    if (isLoading) return <div>Loading...</div>
-    if (error) return <div>Error: {error}</div>
+    const {
+        boardState,
+        gameStatus,
+        isAIThinking,
+        handleIntersectionClick,
+        convertPixelToCoords,
+        boardSize,
+        cellSize,
+        margin
+    } = useGameState(GAME_CONFIG);
 
     return (
         <div className="game-container">
-            <h1>Hello Gamers!</h1>
-            <p>Current System Users: {users.length}</p>
-            <ul>
-                {users.map((user) => (
-                    <li key={user.id}>{user.firstName} {user.lastName}</li>
-                ))}
-            </ul>
+            <div className="board-wrapper">
+                <BoardView
+                    board={boardState}
+                    boardSize={boardSize}
+                    cellSize={cellSize}
+                    margin={margin}
+                    onIntersectionClick={handleIntersectionClick}
+                    convertPixelsToBoardCoords={convertPixelToCoords}
+                    disabled={isAIThinking ||gameStatus !== 'playing'}
+                />
+            </div>
         </div>
     )
 };
