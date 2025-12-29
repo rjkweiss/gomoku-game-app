@@ -1,19 +1,12 @@
 import type { AIMove, DirectionPair, Position, PositionOrNull, StoneColor } from "../Types";
 import { Board } from "./Board";
-import { ZobristHash } from "./ZobristHash";
-import { TranspositionTable, EntryType } from "./TranspositionTable";
 
 export class AIPlayer {
     gomokuBoard: Board;
     depth: number = 3;
 
-    // Player stone components
     readonly stoneColor: StoneColor = "W";
     readonly opponentColor: StoneColor = "B";
-
-    // Transposition table components
-    private zobrist: ZobristHash;
-    private transpositionTable: TranspositionTable;
 
     directions: DirectionPair[] = [
         [[-1, 0], [1, 0]],
@@ -25,24 +18,6 @@ export class AIPlayer {
     constructor(board: Board, depth: number) {
         this.gomokuBoard = board;
         this.depth = depth;
-
-        // initialize transposition table component
-        this.zobrist = new ZobristHash(board.boardSize);
-        this.transpositionTable = new TranspositionTable();
-    }
-
-    // helpers for make move and undo move
-    public notifyMove(row: number, col: number, color: StoneColor): void {
-        this.zobrist.applyMove(row, col, color);
-    }
-
-    public notifyUndo(row: number, col: number, color: StoneColor): void {
-        this.zobrist.undoMove(row, col, color);
-    }
-
-    public reset(): void {
-        this.zobrist.reset();
-        this.transpositionTable.clear();
     }
 
     public findBestMove(): AIMove {
@@ -63,12 +38,10 @@ export class AIPlayer {
         for (const [row, col] of moves) {
             // make move
             this.gomokuBoard.makeMove(row, col, this.stoneColor);
-            this.zobrist.applyMove(row, col, this.stoneColor);
 
             // check if there is a win
             if (this.gomokuBoard.checkWin(row, col) !== null) {
                 this.gomokuBoard.undoMove(row, col);
-                this.zobrist.undoMove(row, col, this.stoneColor);
                 return [row, col];
             }
 
@@ -77,7 +50,6 @@ export class AIPlayer {
 
             // undo
             this.gomokuBoard.undoMove(row, col);
-            this.zobrist.undoMove(row, col, this.stoneColor);
 
             // update best score
             if (score > bestScore) {
@@ -93,42 +65,15 @@ export class AIPlayer {
     }
 
     private minimax(depth: number, isMaximizing: boolean, alpha: number, beta: number): number {
-        // check transposition table first
-        const hash = this.zobrist.getHash();
-        const cachedScore = this.transpositionTable.lookup(hash, depth, alpha, beta);
-        if (cachedScore !== null) return cachedScore;
-
         // If depth is 0, return the score of currennt position
-        if (depth === 0) {
-            const score = this.heuristic();
-            this.transpositionTable.store(hash, score, depth, EntryType.EXACT);
-            return score;
-        }
+        if (depth === 0) return this.heuristic();
 
         // Get all possible moves
         const moves = this.getPossibleMoves();
-        if (moves.length <= 0) {
-            const score = this.heuristic();
-            this.transpositionTable.store(hash, score, depth, EntryType.EXACT);
-            return score;
-        }
-
-        // check if transposition table has a best move we can try first
-        const tTableBestMove = this.transpositionTable.getBestMove(hash);
-        if (tTableBestMove) {
-            const idx = moves.findIndex(m => m[0] === tTableBestMove[0] && m[1] === tTableBestMove[1]);
-            if (idx > 0) {
-                // move it to the front
-                moves.splice(idx, 1);
-                moves.unshift(tTableBestMove);
-            }
-        }
+        if (moves.length <= 0) return this.heuristic();
 
         // rank available moves
         this.getRankedMoves(moves);
-
-        let bestMove: [number, number] | undefined;
-        const originalAlpha = alpha;
 
         // logic for maximizer
         if (isMaximizing) {
@@ -137,13 +82,10 @@ export class AIPlayer {
             for (const [row, col] of moves) {
                 // make move on board
                 this.gomokuBoard.makeMove(row, col, this.stoneColor);
-                this.zobrist.applyMove(row, col, this.stoneColor);
 
                 // check if there is a win
                 if (this.gomokuBoard.checkWin(row, col) !== null) {
                     this.gomokuBoard.undoMove(row, col);
-                    this.zobrist.undoMove(row, col, this.stoneColor);
-                    this.transpositionTable.store(hash, 1000, depth, EntryType.EXACT, [row, col]);
                     return 1000;
                 }
 
@@ -152,13 +94,9 @@ export class AIPlayer {
 
                 // undo move
                 this.gomokuBoard.undoMove(row, col);
-                this.zobrist.undoMove(row, col, this.stoneColor);
 
                 // update best score
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = [row, col];
-                }
+                bestScore = Math.max(bestScore, score);
 
                 // update alpha value
                 alpha = Math.max(alpha, score);
@@ -167,18 +105,6 @@ export class AIPlayer {
                 if (beta <= alpha) break;
             }
 
-            // determine entry type and store
-            let entryType: EntryType;
-            if (bestScore <= originalAlpha) {
-                entryType = EntryType.UPPER_BOUND;
-            } else if (bestScore >= beta) {
-                entryType = EntryType.LOWER_BOUND;
-            } else {
-                entryType = EntryType.EXACT;
-            }
-
-            this.transpositionTable.store(hash, bestScore, depth, entryType, bestMove);
-
             return bestScore;
         } else {
             let bestScore: number = Infinity;
@@ -186,13 +112,10 @@ export class AIPlayer {
             for (const [row, col] of moves) {
                 // make move
                 this.gomokuBoard.makeMove(row, col, this.opponentColor);
-                this.zobrist.applyMove(row, col, this.opponentColor);
 
                 // check if opponent won
                 if (this.gomokuBoard.checkWin(row, col) !== null) {
                     this.gomokuBoard.undoMove(row, col);
-                    this.zobrist.undoMove(row, col, this.opponentColor);
-                    this.transpositionTable.store(hash, -1000, depth, EntryType.EXACT, [row, col]);
                     return -1000;
                 }
 
@@ -201,14 +124,9 @@ export class AIPlayer {
 
                 // undo move
                 this.gomokuBoard.undoMove(row, col);
-                this.zobrist.undoMove(row, col, this.opponentColor);
 
                 // update opponent score
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestMove = [row, col];
-                }
-
+                bestScore = Math.min(bestScore, score);
 
                 // update beta value
                 beta = Math.min(beta, score);
@@ -216,18 +134,6 @@ export class AIPlayer {
                 // prune if possible
                 if (beta <= alpha) break;
             }
-
-            // determine entry type and store
-            let entryType: EntryType;
-            if (bestScore >= beta) {
-                entryType = EntryType.LOWER_BOUND;
-            } else if (bestScore <= originalAlpha) {
-                entryType = EntryType.UPPER_BOUND;
-            } else {
-                entryType = EntryType.EXACT;
-            }
-
-            this.transpositionTable.store(hash, bestScore, depth, entryType, bestMove);
 
             return bestScore;
         }
