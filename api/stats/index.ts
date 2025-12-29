@@ -15,12 +15,12 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
-                error: 'Missing or Invalid authorization header'
+                error: 'Missing or invalid authorization header'
             });
         }
 
         // get token and payload from header
-        const token = authHeader.split(" ")[1];
+        const token = authHeader.split(' ')[1];
         const payload = await verifyToken(token);
         if (!payload) {
             return res.status(401).json({
@@ -64,10 +64,10 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
         // Calculate win rate and format by depth
         const byLevel = Object.entries(statsByLevel).map(([depth, stats]) => ({
-            level: parseInt(depth),
+            depth: parseInt(depth),
             ...stats,
             winRate: stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0
-        })).sort((a, b) => a.level - b.level);
+        })).sort((a, b) => a.depth - b.depth);
 
         // Find highest depth beaten
         const highestLevelBeaten = allGames

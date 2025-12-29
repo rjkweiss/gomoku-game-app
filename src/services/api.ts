@@ -1,5 +1,6 @@
 import type { AuthResponse, GameData, LoginData, RegisterData, StatsResponse } from "../Types";
 
+
 class ApiService {
     private getAuthHeader(): HeadersInit {
         const token= localStorage.getItem('token');

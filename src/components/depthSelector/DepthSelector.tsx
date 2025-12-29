@@ -53,7 +53,7 @@ export const DepthSelector = ({
 
                 <div className="depth-display">
                     <span className="depth-value">{depth}</span>
-                    <span className={`difficulty-label ${getDifficultyLabel(depth).toLocaleUpperCase()}`}>
+                    <span className={`difficulty-label ${getDifficultyLabel(depth).toLowerCase()}`}>
                         {getDifficultyLabel(depth)}
                     </span>
                 </div>

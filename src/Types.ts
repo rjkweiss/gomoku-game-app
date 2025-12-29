@@ -67,6 +67,7 @@ export type GameData = {
     gameDurationSeconds?: number;
 };
 
+// Stats response
 export type StatsResponse = {
     overall: {
         totalGames: number;
