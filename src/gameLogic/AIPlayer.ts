@@ -46,6 +46,17 @@ export class AIPlayer {
     }
 
     public findBestMove(): AIMove {
+        let bestMove: PositionOrNull = null;
+
+        // Iterative deepening
+        for (let currDepth = 1; currDepth <= this.depth; currDepth++) {
+            bestMove = this.searchAtDepth(currDepth, bestMove);
+        }
+
+        return bestMove;
+    }
+
+    public searchAtDepth(searchDepth: number, previousBestMove: PositionOrNull): PositionOrNull {
         // keep track of best score and best move
         let bestScore: number = -Infinity;
         let bestMove: PositionOrNull = null;
@@ -56,6 +67,22 @@ export class AIPlayer {
 
         // get moves
         const moves = this.getPossibleMoves();
+
+        // prioritize transposition table's best move at current position
+        const tTableBestMove = this.transpositionTable.getBestMove(this.zobrist.getHash());
+
+        // use best move from previous iteration
+        const priorityMove = tTableBestMove || previousBestMove;
+
+        if (priorityMove) {
+            const idx = moves.findIndex(
+                m => m[0] === priorityMove[0] && m[1] === priorityMove[1]
+            );
+            if (idx > 0) {
+                moves.splice(idx, 1);
+                moves.unshift(priorityMove);
+            }
+        }
 
         // rank moves
         this.getRankedMoves(moves);
@@ -73,7 +100,7 @@ export class AIPlayer {
             }
 
             // score
-            const score = this.minimax(this.depth, false, alpha, beta);
+            const score = this.minimax(searchDepth - 1, false, alpha, beta);
 
             // undo
             this.gomokuBoard.undoMove(row, col);

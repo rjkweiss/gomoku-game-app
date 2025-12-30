@@ -1,7 +1,7 @@
 .layout {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .sidebar {
@@ -11,6 +11,7 @@
     flex-direction: column;
     gap: 24px;
     min-width: 280px;
+    overflow: auto;
     padding: 32px 24px;
     width: 380px;
 }
