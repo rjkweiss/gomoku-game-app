@@ -1,4 +1,4 @@
-import type { StoneColor } from "../Types";
+import type { StoneColor } from "../../Types";
 
 export class ZobristHash {
     private table: bigint[][][];
