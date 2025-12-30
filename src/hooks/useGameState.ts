@@ -97,6 +97,7 @@ export const useGameState = (config: GameConfig): GameStateReturn => {
 
         // Place AI Stone
         boardRef.current.makeMove(row, col, AI_PLAYER);
+        aiPlayerRef.current?.notifyMove(row, col, AI_PLAYER);
         updateBoardState();
 
         // Check for AI win
@@ -132,6 +133,7 @@ export const useGameState = (config: GameConfig): GameStateReturn => {
 
         // Place stone
         boardRef.current.makeMove(row, col, HUMAN_PLAYER);
+        aiPlayerRef.current?.notifyMove(row, col, HUMAN_PLAYER);
         updateBoardState();
 
         // Check if human won
@@ -163,6 +165,7 @@ export const useGameState = (config: GameConfig): GameStateReturn => {
         // Create fresh instances
         boardRef.current = new Board(boardSize, cellSize, margin);
         aiPlayerRef.current = new AIPlayer(boardRef.current, aiDepth);
+        aiPlayerRef.current.reset();
 
         // Reset all states
         setBoardState(boardRef.current.board.map(row => [...row]));
