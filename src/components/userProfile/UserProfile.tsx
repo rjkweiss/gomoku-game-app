@@ -1,25 +1,71 @@
+import { useState } from "react";
 import { useAuth } from "../../context/useAuth";
 import "./UserProfile.css";
 
-
 export const UserProfile = () => {
-    const { user, logout } = useAuth();
-    if (!user) return null;
+    const [showDropdown, setShowDropdown] = useState(false);
 
-    const displayName = user.username || `${user.firstName} ${user.lastName}`;
-    const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    const { user, logout } = useAuth();
+
+
+    const displayUser = {
+        name: `${user?.firstName} ${user?.lastName}` || "Example User",
+        email: `${user?.email}` || "exampleUser@example.com",
+    };
+
+    const initials = displayUser.name
+        .split(" ")
+        .map(n => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
 
     return (
-        <div className="user-profile-container">
-            <div className="user-profile-header">
-                <div className="user-avatar">{initials}</div>
-                <div className="user-info">
-                    <div className="user-name">{displayName}</div>
-                    <div className="user-email">{user.email}</div>
+        <div className="user-profile-header">
+            <button className="profile-trigger" onClick={() => setShowDropdown(!showDropdown)}>
+                <div className="avatar">
+                    {user?.avatarUrl ? (
+                        <img src={user?.avatarUrl} alt={displayUser.name} />
+                    ) : (
+                        <span className="avatar-initials">{initials}</span>
+                    )}
                 </div>
-            </div>
-
-            <button className="logout-btn" onClick={logout}>Logout</button>
+                <span className="profile-name">{displayUser.name}</span>
+                <svg
+                    className={`dropdown-arrow ${showDropdown ? "open" : ""}`}
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                >
+                    <path
+                        d="M3 4.5L6 7.5L9 4.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        fill="none"
+                    />
+                </svg>
+            </button>
+            {showDropdown && (
+                <div className="profile-dropdown">
+                    <div className="dropdown-header">
+                        <div className="avatar large">
+                            {user?.avatarUrl ? (
+                                <img src={user?.avatarUrl} alt={displayUser.name} />
+                            ) : (
+                                <span className="avatar-initials">{initials}</span>
+                            )}
+                        </div>
+                        <div className="dropdown-user-info">
+                            <span className="dropdown-name">{displayUser.name}</span>
+                            <span className="dropdown-email">{displayUser.email}</span>
+                        </div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item" onClick={logout}>
+                        Sign out
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

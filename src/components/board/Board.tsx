@@ -1,5 +1,8 @@
+import { useRef } from "react";
 import type { BoardState, PositionOrNull } from "../../Types";
+import type { MoveRecord } from "../../gameLogic/player/PlayerTypes";
 import { Stone } from "../stone/Stone";
+import "./Board.css";
 
 
 interface BoardViewProps {
@@ -7,6 +10,7 @@ interface BoardViewProps {
     boardSize: number;
     cellSize: number;
     margin: number;
+    lastMove: MoveRecord | null;
     onIntersectionClick: (row: number, col: number) => void;
     convertPixelsToBoardCoords: (xPixel: number, yPixel: number) => PositionOrNull;
     disabled: boolean;
@@ -14,9 +18,11 @@ interface BoardViewProps {
 
 
 export const BoardView = ({
-    board, boardSize, cellSize, margin, onIntersectionClick,
+    board, boardSize, cellSize, margin, lastMove, onIntersectionClick,
     convertPixelsToBoardCoords, disabled
 }: BoardViewProps) => {
+
+    const svgRef = useRef<SVGSVGElement>(null);
 
     // calculate total board dimensions
     const gridSize = (boardSize - 1) * cellSize;
@@ -27,8 +33,10 @@ export const BoardView = ({
     const handleClick = (e: React.MouseEvent<SVGSVGElement>): void => {
         if (disabled) return;
 
+        const svg = svgRef.current;
+        if (!svg) return;
+
         // Get click position relative to svg
-        const svg = e.currentTarget;
         const rect = svg.getBoundingClientRect();
         const xPixel = e.clientX - rect.left;
         const yPixel = e.clientY - rect.top;
@@ -42,7 +50,6 @@ export const BoardView = ({
         }
     };
 
-
     // generate horizontal lines
     const horizontalLines = Array.from({ length: boardSize }, (_, i) => {
         const y = margin + (i * cellSize);
@@ -51,10 +58,10 @@ export const BoardView = ({
                 key={`h-${i}`}
                 x1={margin}
                 y1={y}
-                x2={margin + gridSize}
+                x2={totalSize - margin}
                 y2={y}
                 stroke="#000000"
-                strokeWidth={2}
+                strokeWidth={1.5}
             />
         );
     });
@@ -69,9 +76,9 @@ export const BoardView = ({
                 x1={x}
                 y1={margin}
                 x2={x}
-                y2={margin + gridSize}
+                y2={totalSize - margin}
                 stroke="#000000"
-                strokeWidth={2}
+                strokeWidth={1.5}
             />
         );
     });
@@ -81,6 +88,8 @@ export const BoardView = ({
     const stones = board.flatMap((row, rowIndex) =>
         row.map((cell, colIndex) => {
             if (cell === null) return null;
+
+            const isLastMove = lastMove && lastMove.position[0] === rowIndex && lastMove.position[1] === colIndex;
 
             const x = margin + (colIndex * cellSize);
             const y = margin + (rowIndex * cellSize);
@@ -92,33 +101,39 @@ export const BoardView = ({
                     y={y}
                     color={cell}
                     diameter={stoneDiameter}
+                    isLastMove={isLastMove}
                 />
             );
         })
     ).filter(Boolean);
 
     return (
-        <svg
-            width={totalSize}
-            height={totalSize}
-            onClick={handleClick}
-            style={{ cursor: disabled ? "not-allowed" : "pointer" }}
-        >
-            {/* Board background */}
-            <rect
-                x={0}
-                y={0}
+        <div className="board-container">
+            <svg
+                ref={svgRef}
                 width={totalSize}
                 height={totalSize}
-                fill="#DEB887"
-            />
+                onClick={handleClick as any}
+                className={`board-svg ${disabled ? "disabled": ""}`}
+            >
+                {/* Board background */}
+                <rect
+                    x={0}
+                    y={0}
+                    width={totalSize}
+                    height={totalSize}
+                    fill="#DEB887"
+                    rx={8}
+                />
 
-            {/* Gridlines */}
-            {horizontalLines}
-            {verticalLines}
+                {/* Gridlines */}
+                {horizontalLines}
+                {verticalLines}
 
-            {/* stones */}
-            {stones}
-        </svg>
+                {/* stones */}
+                {stones}
+            </svg>
+        </div>
+
     );
 };

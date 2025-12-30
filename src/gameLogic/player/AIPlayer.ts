@@ -1,12 +1,19 @@
-import type { AIMove, DirectionPair, Position, PositionOrNull, StoneColor } from "../Types";
-import { Board } from "./Board";
+import type { AIMove, DirectionPair, Position, PositionOrNull, StoneColor } from "../../Types";
+import { Board } from "../Board";
+import { ZobristHash } from "../transpositionTable/ZobristHash";
+import { TranspositionTable, EntryType } from "../transpositionTable/TranspositionTable";
 
 export class AIPlayer {
     gomokuBoard: Board;
     depth: number = 3;
 
+    // Player stone components
     readonly stoneColor: StoneColor = "W";
     readonly opponentColor: StoneColor = "B";
+
+    // Transposition table components
+    private zobrist: ZobristHash;
+    private transpositionTable: TranspositionTable;
 
     directions: DirectionPair[] = [
         [[-1, 0], [1, 0]],
@@ -18,9 +25,38 @@ export class AIPlayer {
     constructor(board: Board, depth: number) {
         this.gomokuBoard = board;
         this.depth = depth;
+
+        // initialize transposition table component
+        this.zobrist = new ZobristHash(board.boardSize);
+        this.transpositionTable = new TranspositionTable();
+    }
+
+    // helpers for make move and undo move
+    public notifyMove(row: number, col: number, color: StoneColor): void {
+        this.zobrist.applyMove(row, col, color);
+    }
+
+    public notifyUndo(row: number, col: number, color: StoneColor): void {
+        this.zobrist.undoMove(row, col, color);
+    }
+
+    public reset(): void {
+        this.zobrist.reset();
+        this.transpositionTable.clear();
     }
 
     public findBestMove(): AIMove {
+        let bestMove: PositionOrNull = null;
+
+        // Iterative deepening
+        for (let currDepth = 1; currDepth <= this.depth; currDepth++) {
+            bestMove = this.searchAtDepth(currDepth, bestMove);
+        }
+
+        return bestMove;
+    }
+
+    public searchAtDepth(searchDepth: number, previousBestMove: PositionOrNull): PositionOrNull {
         // keep track of best score and best move
         let bestScore: number = -Infinity;
         let bestMove: PositionOrNull = null;
@@ -32,24 +68,43 @@ export class AIPlayer {
         // get moves
         const moves = this.getPossibleMoves();
 
+        // prioritize transposition table's best move at current position
+        const tTableBestMove = this.transpositionTable.getBestMove(this.zobrist.getHash());
+
+        // use best move from previous iteration
+        const priorityMove = tTableBestMove || previousBestMove;
+
+        if (priorityMove) {
+            const idx = moves.findIndex(
+                m => m[0] === priorityMove[0] && m[1] === priorityMove[1]
+            );
+            if (idx > 0) {
+                moves.splice(idx, 1);
+                moves.unshift(priorityMove);
+            }
+        }
+
         // rank moves
         this.getRankedMoves(moves);
 
         for (const [row, col] of moves) {
             // make move
             this.gomokuBoard.makeMove(row, col, this.stoneColor);
+            this.zobrist.applyMove(row, col, this.stoneColor);
 
             // check if there is a win
             if (this.gomokuBoard.checkWin(row, col) !== null) {
                 this.gomokuBoard.undoMove(row, col);
+                this.zobrist.undoMove(row, col, this.stoneColor);
                 return [row, col];
             }
 
             // score
-            const score = this.minimax(this.depth, false, alpha, beta);
+            const score = this.minimax(searchDepth - 1, false, alpha, beta);
 
             // undo
             this.gomokuBoard.undoMove(row, col);
+            this.zobrist.undoMove(row, col, this.stoneColor);
 
             // update best score
             if (score > bestScore) {
@@ -65,15 +120,42 @@ export class AIPlayer {
     }
 
     private minimax(depth: number, isMaximizing: boolean, alpha: number, beta: number): number {
+        // check transposition table first
+        const hash = this.zobrist.getHash();
+        const cachedScore = this.transpositionTable.lookup(hash, depth, alpha, beta);
+        if (cachedScore !== null) return cachedScore;
+
         // If depth is 0, return the score of currennt position
-        if (depth === 0) return this.heuristic();
+        if (depth === 0) {
+            const score = this.heuristic();
+            this.transpositionTable.store(hash, score, depth, EntryType.EXACT);
+            return score;
+        }
 
         // Get all possible moves
         const moves = this.getPossibleMoves();
-        if (moves.length <= 0) return this.heuristic();
+        if (moves.length <= 0) {
+            const score = this.heuristic();
+            this.transpositionTable.store(hash, score, depth, EntryType.EXACT);
+            return score;
+        }
+
+        // check if transposition table has a best move we can try first
+        const tTableBestMove = this.transpositionTable.getBestMove(hash);
+        if (tTableBestMove) {
+            const idx = moves.findIndex(m => m[0] === tTableBestMove[0] && m[1] === tTableBestMove[1]);
+            if (idx > 0) {
+                // move it to the front
+                moves.splice(idx, 1);
+                moves.unshift(tTableBestMove);
+            }
+        }
 
         // rank available moves
         this.getRankedMoves(moves);
+
+        let bestMove: [number, number] | undefined;
+        const originalAlpha = alpha;
 
         // logic for maximizer
         if (isMaximizing) {
@@ -82,10 +164,13 @@ export class AIPlayer {
             for (const [row, col] of moves) {
                 // make move on board
                 this.gomokuBoard.makeMove(row, col, this.stoneColor);
+                this.zobrist.applyMove(row, col, this.stoneColor);
 
                 // check if there is a win
                 if (this.gomokuBoard.checkWin(row, col) !== null) {
                     this.gomokuBoard.undoMove(row, col);
+                    this.zobrist.undoMove(row, col, this.stoneColor);
+                    this.transpositionTable.store(hash, 1000, depth, EntryType.EXACT, [row, col]);
                     return 1000;
                 }
 
@@ -94,9 +179,13 @@ export class AIPlayer {
 
                 // undo move
                 this.gomokuBoard.undoMove(row, col);
+                this.zobrist.undoMove(row, col, this.stoneColor);
 
                 // update best score
-                bestScore = Math.max(bestScore, score);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = [row, col];
+                }
 
                 // update alpha value
                 alpha = Math.max(alpha, score);
@@ -105,6 +194,18 @@ export class AIPlayer {
                 if (beta <= alpha) break;
             }
 
+            // determine entry type and store
+            let entryType: EntryType;
+            if (bestScore <= originalAlpha) {
+                entryType = EntryType.UPPER_BOUND;
+            } else if (bestScore >= beta) {
+                entryType = EntryType.LOWER_BOUND;
+            } else {
+                entryType = EntryType.EXACT;
+            }
+
+            this.transpositionTable.store(hash, bestScore, depth, entryType, bestMove);
+
             return bestScore;
         } else {
             let bestScore: number = Infinity;
@@ -112,10 +213,13 @@ export class AIPlayer {
             for (const [row, col] of moves) {
                 // make move
                 this.gomokuBoard.makeMove(row, col, this.opponentColor);
+                this.zobrist.applyMove(row, col, this.opponentColor);
 
                 // check if opponent won
                 if (this.gomokuBoard.checkWin(row, col) !== null) {
                     this.gomokuBoard.undoMove(row, col);
+                    this.zobrist.undoMove(row, col, this.opponentColor);
+                    this.transpositionTable.store(hash, -1000, depth, EntryType.EXACT, [row, col]);
                     return -1000;
                 }
 
@@ -124,9 +228,14 @@ export class AIPlayer {
 
                 // undo move
                 this.gomokuBoard.undoMove(row, col);
+                this.zobrist.undoMove(row, col, this.opponentColor);
 
                 // update opponent score
-                bestScore = Math.min(bestScore, score);
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestMove = [row, col];
+                }
+
 
                 // update beta value
                 beta = Math.min(beta, score);
@@ -134,6 +243,18 @@ export class AIPlayer {
                 // prune if possible
                 if (beta <= alpha) break;
             }
+
+            // determine entry type and store
+            let entryType: EntryType;
+            if (bestScore >= beta) {
+                entryType = EntryType.LOWER_BOUND;
+            } else if (bestScore <= originalAlpha) {
+                entryType = EntryType.UPPER_BOUND;
+            } else {
+                entryType = EntryType.EXACT;
+            }
+
+            this.transpositionTable.store(hash, bestScore, depth, entryType, bestMove);
 
             return bestScore;
         }

@@ -1,0 +1,123 @@
+.game-mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 2px solid #4a5568;
+    border-radius: 8px;
+    background: transparent;
+    color: #a0aec0;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-btn:hover:not(:disabled) {
+    border-color: #68d391;
+    color: #68d391;
+}
+
+.mode-btn.active {
+    border-color: #68d391;
+    background: rgba(104, 211, 145, 0.15);
+    color: #68d391;
+}
+
+.mode-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pvp-setup {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.player-input label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-input .stone {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.player-input .black-stone {
+    background: radial-gradient(circle at 30% 30%, #4a4a4a, #1a1a1a);
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.player-input .white-stone {
+    background: radial-gradient(circle at 30% 30%, #ffffff, #d0d0d0);
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.player-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.player-input input:focus {
+    outline: none;
+    border-color: #68d391;
+}
+
+.player-input input::placeholder {
+    color: #718096;
+}
+
+.start-btn {
+    padding: 10px 20px;
+    background: #68d391;
+    border: none;
+    border-radius: 8px;
+    color: #1a202c;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.start-btn:hover:not(:disabled) {
+    background: #4fd180;
+}
+
+.start-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

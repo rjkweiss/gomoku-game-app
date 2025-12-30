@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Board } from "../gameLogic/Board";
-import { AIPlayer } from "../gameLogic/AIPlayer";
+import { AIPlayer } from "../gameLogic/player/AIPlayer";
 import type { BoardState, GameStatus, PositionOrNull, StoneColor, Winner } from "../Types";
 
 // Configuration interface

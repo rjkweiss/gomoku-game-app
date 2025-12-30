@@ -17,7 +17,6 @@ export const StatsDisplay = forwardRef<StatsDisplayHandle>((_, ref) => {
         try {
             setIsLoading(true);
             const data = await api.getStats();
-            console.log("stats: ", data)
             setStats(data);
             setError(null);
         } catch (err) {

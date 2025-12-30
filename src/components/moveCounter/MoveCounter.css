@@ -1,0 +1,22 @@
+.move-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.move-count {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e2e8f0;
+    line-height: 1;
+}
+
+.move-label {
+    font-size: 10px;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}

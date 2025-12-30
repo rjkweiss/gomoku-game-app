@@ -34,7 +34,8 @@ export type User = {
     email: string,
     username: string | null;
     firstName: string,
-    lastName: string
+    lastName: string,
+    avatarUrl?: string
 };
 
 // User Registration data

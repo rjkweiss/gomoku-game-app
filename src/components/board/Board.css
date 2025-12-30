@@ -1,0 +1,32 @@
+.board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.board-svg {
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.board-svg.disabled {
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+/* Last move indicator pulse animation */
+.last-move-indicator {
+    animation: pulse 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 2px rgba(230, 57, 70, 0.5));
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform-origin: center;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}

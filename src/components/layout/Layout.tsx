@@ -3,23 +3,41 @@ import "./Layout.css";
 
 
 interface LayoutProps {
-    sidebarContent?: ReactNode;
     children: ReactNode;
+    sidebarContent?: ReactNode;
+    headerContent?: ReactNode;
 }
 
 
-export const Layout = ({ sidebarContent, children }: LayoutProps) => {
+export const Layout = ({ children, sidebarContent, headerContent}: LayoutProps) => {
     return (
         <div className="layout">
-            <aside className="sidebar">
-                <h1 className="sidebar-title">Gomoku</h1>
-                <p className="sidebar-subtitle">Get 5 in a row to win</p>
-                <div className="sidebar-divider" />
-                {sidebarContent}
-            </aside>
-            <main className="main-content">
-                {children}
-            </main>
+            {/* header */}
+            <header className="layout-header">
+                <div className="header-brand">
+                    <h1 className="header-title">Gomoku</h1>
+                    <span className="header-subtitle">GET 5 IN A ROW TO WIN</span>
+                </div>
+                {headerContent && (
+                    <div className="header-right">
+                        {headerContent}
+                    </div>
+                )}
+            </header>
+
+            {/* layout body */}
+            <div className="layout-body">
+                {/* Sidebar */}
+                {sidebarContent && (
+                    <aside className="layout-sidebar">
+                        {sidebarContent}
+                    </aside>
+                )}
+                {/* main content */}
+                <main className="layout-main">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 };

@@ -1,13 +1,16 @@
 import { useEffect, useRef } from "react";
-import { useGameState } from "../hooks/useGameState";
+import { useGameSession, } from "../hooks/useGameSession";
 import { Layout } from "./layout/Layout";
 import { BoardView } from "./board/Board";
 import { GameInfo } from "./gameInfo/GameInfo";
 import { GameOverlay } from "./gameOverlay/GameOverlay";
 import { DepthSelector } from "./depthSelector/DepthSelector";
+import { GameModeSelector } from "./gameModeSelector/GameModeSelector";
+import { MoveCounter } from "./moveCounter/MoveCounter";
 import { UserProfile } from "./userProfile/UserProfile";
 import { StatsDisplay, type StatsDisplayHandle } from "./stats/StatsDisplay";
 import { api } from "../services/api";
+import type { GameMode, PlayerInfo } from "../gameLogic/player/PlayerTypes";
 import "./Game.css";
 
 // Game Configuration
@@ -23,20 +26,39 @@ const GAME_CONFIG = {
 export const Game = () => {
 
     const {
+        // board
         boardState,
+        boardSize,
+        cellSize,
+        margin,
+
+        // game state
         currentTurn,
+        currentPlayer,
         gameStatus,
         winner,
         isAIThinking,
+
+        // move tracking
+        lastMove,
+        moveCount,
+
+        // players
+        playerBlack,
+        playerWhite,
+        gameMode,
+
+        // ai settings
         aiDepth,
-        handleIntersectionClick,
-        resetGame,
         setAIDepth,
+
+        // actions
+        handleIntersectionClick,
+        startGame,
+        resetGame,
         convertPixelToCoords,
-        boardSize,
-        cellSize,
-        margin
-    } = useGameState(GAME_CONFIG);
+
+    } = useGameSession(GAME_CONFIG);
 
     // Track if game result has been recorded
     const gameRecordRef = useRef(false);
@@ -45,7 +67,7 @@ export const Game = () => {
     // Record game result when game ends
     useEffect(() => {
         const recordGameResult = async () => {
-            if (gameStatus !== 'playing' && !gameRecordRef.current) {
+            if (gameStatus !== 'playing' && !gameRecordRef.current && gameMode === "vs-ai") {
                 gameRecordRef.current = true;
 
                 try {
@@ -60,9 +82,10 @@ export const Game = () => {
 
                     await api.recordGame({
                         aiDepth,
-                        result
+                        result,
+                        moveCount
 
-                        // To-do: add moveCount, gameDurationSeconds
+                        // To-do: add gameDurationSeconds
                     });
 
                     // Reload stats after recording
@@ -77,11 +100,16 @@ export const Game = () => {
         };
         recordGameResult();
 
-    }, [gameStatus, winner, aiDepth]);
+    }, [gameStatus, winner, aiDepth, gameMode, moveCount]);
 
     // Handle game reset
     const handleReset = () => {
         resetGame();
+        gameRecordRef.current = false;
+    };
+
+    const handleStartGame = (mode: GameMode, blackPlayer: PlayerInfo, whitePlayer: PlayerInfo) => {
+        startGame(mode, blackPlayer, whitePlayer);
         gameRecordRef.current = false;
     };
 
@@ -91,31 +119,51 @@ export const Game = () => {
         handleReset();
     };
 
+    // get winner's name for overlay
+    const getWinnerName = (): string | null => {
+        if (!winner) return null;
+        if (winner === "B") return playerBlack?.name || "Black";
+        return playerWhite?.name || "White";
+    };
+
     // Sidebar content
     const sidebarContent = (
         <>
             <StatsDisplay ref={statsDisplayRef} />
-            <UserProfile />
         </>
     );
 
     return (
-        <Layout sidebarContent={sidebarContent}>
+        <Layout
+            sidebarContent={sidebarContent}
+            headerContent={<UserProfile />}
+        >
             <div className="game-container">
+                <div className="game-setup">
+                    <GameModeSelector
+                        currentMode={gameMode}
+                        onStartGame={handleStartGame}
+                        disabled={isAIThinking}
+                    />
+                </div>
                 {/* controls above board */}
                 <div className="game-controls">
                     <GameInfo
                         currentTurn={currentTurn}
+                        currentPlayer={currentPlayer}
                         isAIThinking={isAIThinking}
                         onReset={handleReset}
                     />
-                    <DepthSelector
-                        depth={aiDepth}
-                        minDepth={1}
-                        maxDepth={7}
-                        onDepthChange={handleDepthChange}
-                        disabled={isAIThinking}
-                    />
+                    <MoveCounter count={moveCount} />
+                    {gameMode === 'vs-ai' && (
+                        <DepthSelector
+                            depth={aiDepth}
+                            minDepth={1}
+                            maxDepth={7}
+                            onDepthChange={handleDepthChange}
+                            disabled={isAIThinking}
+                        />
+                    )}
                 </div>
 
                 {/* Board View */}
@@ -125,6 +173,7 @@ export const Game = () => {
                         boardSize={boardSize}
                         cellSize={cellSize}
                         margin={margin}
+                        lastMove={lastMove}
                         onIntersectionClick={handleIntersectionClick}
                         convertPixelsToBoardCoords={convertPixelToCoords}
                         disabled={isAIThinking || gameStatus !== 'playing'}
@@ -134,6 +183,7 @@ export const Game = () => {
                     {gameStatus !== 'playing' && (
                         <GameOverlay
                             winner={winner}
+                            winnerName={getWinnerName()}
                             gameStatus={gameStatus}
                             onReset={handleReset}
                         />
