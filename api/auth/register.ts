@@ -19,7 +19,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
         const { email, username, password, firstName, lastName } = req.body;
 
         //validate required fields
-        if (!email || password || !firstName || !lastName) {
+        if (!email || !password || !firstName || !lastName) {
             return res.status(400).json({
                 error: 'Missing required fields: email, password, firstName, lastName'
             });
