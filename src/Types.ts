@@ -1,3 +1,4 @@
+import type { PlayerInfo } from "./gameLogic/player/PlayerTypes";
 // stone color
 export type StoneColor = "B" | "W";
 
@@ -95,3 +96,20 @@ export type StatsResponse = {
         playedAt: string;
     }>;
 };
+
+// Message types sent or received via websocket
+export type ServerMessage =
+    | { type: "game_created"; gameId: string; inviteCode: string }
+    | { type: "player_joined"; player: PlayerInfo; color: StoneColor }
+    | { type: "game_start"; playerBlack: PlayerInfo; playerWhite: PlayerInfo }
+    | { type: "move_made"; position: Position; player: StoneColor }
+    | { type: "game_end"; winner: StoneColor | "draw" }
+    | { type: "player_disconnected"; player: PlayerInfo }
+    | { type: "error"; message: string };
+
+export type ClientMessage =
+    | { type: "create_game"; player: PlayerInfo }
+    | { type: "join_game"; inviteCode: string; player: PlayerInfo }
+    | { type: "make_move"; gameId: string; position: Position }
+    | { type: "resign"; gameId: string }
+    | { type: "rematch_request"; gameId: string };

@@ -7,6 +7,7 @@ import "./GameModeSelector.css";
 interface GameModeSelectorProps {
     currentMode: GameMode;
     onStartGame: (mode: GameMode, playerBlack: PlayerInfo, playerWhite: PlayerInfo) => void;
+    onPlayOnline: () => void;
     disabled?: boolean;
 };
 
@@ -17,7 +18,7 @@ const DEFAULT_AI: PlayerInfo = {
     type: "ai"
 }
 
-export const GameModeSelector = ({ currentMode, onStartGame, disabled }: GameModeSelectorProps) => {
+export const GameModeSelector = ({ currentMode, onStartGame, onPlayOnline, disabled }: GameModeSelectorProps) => {
     const { user } = useAuth();
 
     const [selectedMode, setSelectedMode] = useState<GameMode>(currentMode);
@@ -78,6 +79,13 @@ export const GameModeSelector = ({ currentMode, onStartGame, disabled }: GameMod
                     disabled={disabled}
                 >
                     vs Human
+                </button>
+                <button
+                    className="mode-btn online"
+                    onClick={onPlayOnline}
+                    disabled={disabled}
+                >
+                    🌐 Play Online
                 </button>
             </div>
 

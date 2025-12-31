@@ -1,4 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { GameMode, PlayerInfo } from "../gameLogic/player/PlayerTypes";
+import { api } from "../services/api";
 import { useGameSession, } from "../hooks/useGameSession";
 import { Layout } from "./layout/Layout";
 import { BoardView } from "./board/Board";
@@ -7,10 +9,9 @@ import { GameOverlay } from "./gameOverlay/GameOverlay";
 import { DepthSelector } from "./depthSelector/DepthSelector";
 import { GameModeSelector } from "./gameModeSelector/GameModeSelector";
 import { MoveCounter } from "./moveCounter/MoveCounter";
+import { OnlineGame } from "./onlineGame/OnlineGame";
 import { UserProfile } from "./userProfile/UserProfile";
 import { StatsDisplay, type StatsDisplayHandle } from "./stats/StatsDisplay";
-import { api } from "../services/api";
-import type { GameMode, PlayerInfo } from "../gameLogic/player/PlayerTypes";
 import "./Game.css";
 
 // Game Configuration
@@ -22,8 +23,32 @@ const GAME_CONFIG = {
     aiDelayMs: 1250
 };
 
+// WebSocket server URL
+const WS_SERVER_URL = "ws://localhost:8080";
 
-export const Game = () => {
+// View mode type
+type ViewMode = "local" | "online";
+
+interface GameProps {
+    user?: {
+        id: number | string;
+        name: string;
+        email: string;
+    } | null;
+}
+
+
+export const Game = ({ user }: GameProps) => {
+
+    // Track whether we're in local or online mode
+    const [viewMode, setViewMode] = useState<ViewMode>("local");
+
+    // Current user - in real app, get from auth context
+    const currentUser: PlayerInfo = {
+        id: user?.id?.toString() || `guest-${Date.now()}`,
+        name: user?.name || 'Guest',
+        type: 'human'
+    };
 
     const {
         // board
@@ -102,6 +127,9 @@ export const Game = () => {
 
     }, [gameStatus, winner, aiDepth, gameMode, moveCount]);
 
+
+    // --------------------------------------------------- handlers ---------------------------------------------------- //
+
     // Handle game reset
     const handleReset = () => {
         resetGame();
@@ -119,6 +147,18 @@ export const Game = () => {
         handleReset();
     };
 
+    // Handle play online
+    const handlePlayOnline = () => {
+        setViewMode("online");
+    };
+
+    // Handle exit online mode
+    const handleExitOnline = () => {
+        setViewMode("local");
+    }
+
+    // -------------------------------------------------------------------------------------------------------------- //
+
     // get winner's name for overlay
     const getWinnerName = (): string | null => {
         if (!winner) return null;
@@ -133,6 +173,24 @@ export const Game = () => {
         </>
     );
 
+    // online game view
+    if (viewMode === "online") {
+        return (
+            <Layout
+                sidebarContent={sidebarContent}
+                headerContent={<UserProfile />}
+            >
+                <OnlineGame
+                    currentUser={currentUser}
+                    serverUrl={WS_SERVER_URL}
+                    onExit={handleExitOnline}
+                />
+            </Layout>
+        )
+    }
+
+    // -------------------------------------------------------------------------------------------------------------- //
+
     return (
         <Layout
             sidebarContent={sidebarContent}
@@ -143,9 +201,11 @@ export const Game = () => {
                     <GameModeSelector
                         currentMode={gameMode}
                         onStartGame={handleStartGame}
+                        onPlayOnline={handlePlayOnline}
                         disabled={isAIThinking}
                     />
                 </div>
+
                 {/* controls above board */}
                 <div className="game-controls">
                     <GameInfo
@@ -154,7 +214,10 @@ export const Game = () => {
                         isAIThinking={isAIThinking}
                         onReset={handleReset}
                     />
+
                     <MoveCounter count={moveCount} />
+
+                    {/* only show depth selector for AI games */}
                     {gameMode === 'vs-ai' && (
                         <DepthSelector
                             depth={aiDepth}

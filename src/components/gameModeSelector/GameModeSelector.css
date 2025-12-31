@@ -38,6 +38,12 @@
     cursor: not-allowed;
 }
 
+.mode-btn.online {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
 .pvp-setup {
     display: flex;
     flex-direction: column;

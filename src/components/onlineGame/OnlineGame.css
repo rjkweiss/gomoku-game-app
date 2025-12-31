@@ -1,0 +1,47 @@
+.online-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.board-wrapper {
+    position: relative;
+}
+
+/* Waiting overlay when it's opponent's turn */
+.waiting-overlay {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 20px;
+    color: #a0aec0;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.waiting-overlay::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: #68d391;
+    border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
