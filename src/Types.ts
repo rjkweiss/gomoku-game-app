@@ -101,7 +101,7 @@ export type StatsResponse = {
 export type ServerMessage =
     | { type: "game_created"; gameId: string; inviteCode: string }
     | { type: "player_joined"; player: PlayerInfo; color: StoneColor }
-    | { type: "game_start"; playerBlack: PlayerInfo; playerWhite: PlayerInfo }
+    | { type: "game_start"; gameId?: string; playerBlack: PlayerInfo; playerWhite: PlayerInfo }
     | { type: "move_made"; position: Position; player: StoneColor }
     | { type: "game_end"; winner: StoneColor | "draw" }
     | { type: "player_disconnected"; player: PlayerInfo }

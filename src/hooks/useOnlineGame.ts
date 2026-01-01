@@ -125,19 +125,18 @@ export const useOnlineGame = (config: OnlineGameConfig): OnlineGameReturn => {
                             setConnectionError("Connection lost");
                         }
                     },
+
                     onGameCreated: (_gameId, code) => {
                         if (!isMounted) return;
                         setInviteCode(code);
                         setGameStatus("waiting_for_opponent");
                     },
+
                     onPlayerJoined: (player, _color) => {
                         if (!isMounted) return;
                         setRemotePlayer(player);
-                        // if we are the creator and someone joined, we're black
-                        if (localColorRef.current === "B") {
-                            setRemotePlayer(player);
-                        }
                     },
+
                     onGameStart: (blackPlayer, whitePlayer) => {
                         if (!isMounted) return;
                         setGameStatus("playing");
@@ -159,8 +158,10 @@ export const useOnlineGame = (config: OnlineGameConfig): OnlineGameReturn => {
                         setLastMove(null);
                         setWinner(null);
                     },
+
                     onMoveMade: (position, player) => {
                         if (!isMounted) return;
+
                         const [row, col] = position;
 
                         // update board
@@ -168,28 +169,35 @@ export const useOnlineGame = (config: OnlineGameConfig): OnlineGameReturn => {
                         setBoardState(boardRef.current.board.map(row => [...row]));
 
                         // record move
-                        const move: MoveRecord = {
-                            position,
-                            player,
-                            timestamp: Date.now(),
-                            moveNumber: moveHistory.length + 1
-                        }
 
-                        setMoveHistory(prev => [...prev, move]);
-                        setLastMove(move);
+                        setMoveHistory(prev => {
+                            const move: MoveRecord = {
+                                position,
+                                player,
+                                timestamp: Date.now(),
+                                moveNumber: prev.length + 1
+                            };
+                            setLastMove(move);
+                            return [...prev, move];
+                        });
 
-                        // switch turns
-                        setCurrentTurn(player === "B" ? "W" : "B");
+
+                        // switch turnsconst
+                        const nextTurn = player === "B" ? "W" : "B";
+                        setCurrentTurn(nextTurn);
                     },
+
                     onGameEnd: (result) => {
                         if (!isMounted) return;
                         setGameStatus('finished');
                         setWinner(result);
                     },
+
                     onPlayerDisconnected: (player) => {
                         if (!isMounted) return;
                         setConnectionError(`${player.name} disconnected`);
                     },
+
                     onError: (message) => {
                         if (!isMounted) return;
                         setConnectionError(message);
@@ -234,7 +242,9 @@ export const useOnlineGame = (config: OnlineGameConfig): OnlineGameReturn => {
 
     // make move
     const makeMove = useCallback((row: number, col: number) => {
-        if (!isMyTurn) return;
+        if (!isMyTurn) {
+            return;
+        }
         if (!boardRef.current.isPositionValid(row, col)) return;
 
         socketRef.current?.makeMove([row, col]);

@@ -135,6 +135,9 @@ export class GameSocketService {
                 break;
 
             case "game_start":
+                if (message.gameId) {
+                    this.gameId = message.gameId;
+                }
                 this.callBacks.onGameStart?.(message.playerBlack, message.playerWhite);
                 break;
 

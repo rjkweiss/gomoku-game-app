@@ -16,7 +16,7 @@ const DEFAULT_AI: PlayerInfo = {
     id: "ai-player",
     name: "Computer",
     type: "ai"
-}
+};
 
 export const GameModeSelector = ({ currentMode, onStartGame, onPlayOnline, disabled }: GameModeSelectorProps) => {
     const { user } = useAuth();

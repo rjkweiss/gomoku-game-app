@@ -143,12 +143,14 @@ wss.on("connection", (socket) => {
                 // Now send game_start to BOTH players with correct player info
                 const gameStartMsgForBlack = JSON.stringify({
                     type: "game_start",
+                    gameId: gameId,
                     playerBlack: game.playerBlack!.info,
                     playerWhite: game.playerWhite.info
                 });
 
                 const gameStartMsgForWhite = JSON.stringify({
                     type: "game_start",
+                    gameId: gameId,
                     playerBlack: game.playerBlack!.info,
                     playerWhite: game.playerWhite.info
                 });

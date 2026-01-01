@@ -70,6 +70,8 @@ export const OnlineGame = ({ currentUser, serverUrl, onExit }: OnlineGameProps) 
     const handleIntersectionClick = (row: number, col: number) => {
         if (isMyTurn) {
             makeMove(row, col);
+        } else {
+            console.log('Not my turn!');
         }
     };
 
