@@ -24,7 +24,7 @@ const GAME_CONFIG = {
 };
 
 // WebSocket server URL
-const WS_SERVER_URL = "ws://localhost:8080";
+const WS_SERVER_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
 
 // View mode type
 type ViewMode = "local" | "online";
